@@ -74,6 +74,7 @@ export default function RegisterPage() {
         upazila: formData.upazila,
         address: formData.address,
         password: formData.password,
+        confirm_password: formData.confirm_password,
       };
 
       const response = await api.post('/auth/register/', submitData);
