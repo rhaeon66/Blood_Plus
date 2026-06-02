@@ -16,7 +16,15 @@ export default function BloodRequestsPage() {
     try {
       setLoading(true);
       const response = await api.get('/blood-requests/');
-      setRequests(response.data);
+      // DRF may return paginated responses with a `results` array
+      const data = response.data;
+      if (Array.isArray(data)) {
+        setRequests(data);
+      } else if (data && Array.isArray(data.results)) {
+        setRequests(data.results);
+      } else {
+        setRequests([]);
+      }
     } catch (error) {
       console.error('Error fetching requests:', error);
     } finally {
