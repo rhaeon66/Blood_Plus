@@ -71,7 +71,13 @@ export default function RequestBloodPage() {
       await api.post('/blood-requests/', formData);
       router.push('/blood-requests?success=Request created successfully');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to create request');
+      const errorData = err.response?.data;
+      if (typeof errorData === 'object') {
+        const firstError = Object.values(errorData)[0];
+        setError(Array.isArray(firstError) ? firstError[0] : firstError);
+      } else {
+        setError(errorData?.detail || 'Failed to create request');
+      }
     } finally {
       setLoading(false);
     }
