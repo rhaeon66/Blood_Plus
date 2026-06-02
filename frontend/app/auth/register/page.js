@@ -82,12 +82,19 @@ export default function RegisterPage() {
       router.push('/');
     } catch (err) {
       const errorData = err.response?.data;
-      if (typeof errorData === 'object') {
-        const firstError = Object.values(errorData)[0];
-        setError(Array.isArray(firstError) ? firstError[0] : firstError);
-      } else {
-        setError(errorData?.detail || 'Registration failed');
-      }
+      const formatError = (data) => {
+        if (!data) return 'Registration failed';
+        if (typeof data === 'string') return data;
+        if (Array.isArray(data)) return data[0];
+        if (typeof data === 'object') {
+          const first = Object.values(data)[0];
+          if (Array.isArray(first)) return first[0];
+          if (typeof first === 'string') return first;
+          if (typeof first === 'object') return JSON.stringify(first);
+        }
+        return 'Registration failed';
+      };
+      setError(formatError(errorData) || errorData?.detail || 'Registration failed');
     } finally {
       setLoading(false);
     }

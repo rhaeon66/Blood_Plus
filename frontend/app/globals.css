@@ -10,12 +10,184 @@
 
 html {
   scroll-behavior: smooth;
+  font-feature-settings: "rounding" 1;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #FAFAFA;
+  color: #0F172A;
+}
+
+/* Hero Gradient Background */
+.hero-gradient {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.08) 0%, rgba(239, 68, 68, 0.04) 50%, rgba(248, 113, 113, 0.02) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative Background Elements */
+.hero-gradient::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(220, 38, 38, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: float 6s ease-in-out infinite;
+}
+
+.hero-gradient::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -5%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(40px);
+  }
+}
+
+/* Glass Effect */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Premium Card Styles */
+.premium-card {
+  @apply bg-card-bg rounded-card shadow-soft transition-all duration-300 hover:shadow-red-glow;
+}
+
+.premium-card:hover {
+  @apply shadow-red-glow translate-y-0;
+}
+
+/* Gradient Button */
+.btn-gradient {
+  @apply bg-gradient-red text-white font-semibold rounded-button transition-all duration-300;
+}
+
+.btn-gradient:hover {
+  @apply shadow-red-glow-lg transform scale-105;
+}
+
+.btn-gradient:active {
+  @apply transform scale-95;
+}
+
+/* Ghost Button */
+.btn-ghost {
+  @apply text-secondary-light hover:text-primary border border-transparent hover:border-primary px-4 py-2 rounded-button transition-all duration-300;
+}
+
+/* Section Separator */
+.section-divider {
+  @apply h-px bg-gradient-to-r from-transparent via-border to-transparent my-12 md:my-16;
+}
+
+/* Smooth Shadows */
+.shadow-elegant {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-subtle {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Text Utilities */
+.text-primary-gradient {
+  background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Hover Animations */
+.hover-lift {
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px -12px rgba(220, 38, 38, 0.15);
+}
+
+/* Smooth Link Underline Animation */
+.link-underline {
+  position: relative;
+  text-decoration: none;
+}
+
+.link-underline::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -4px;
+  left: 0;
+  background-color: #DC2626;
+  transition: width 0.3s ease;
+}
+
+.link-underline:hover::after {
+  width: 100%;
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  h1 {
+    @apply text-3xl md:text-4xl;
+  }
+  
+  h2 {
+    @apply text-2xl md:text-3xl;
+  }
+}
+
+/* Scroll Animation */
+.animate-on-scroll {
+  opacity: 0;
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+/* Stagger Animation */
+.stagger-item {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.stagger-item:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.stagger-item:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.stagger-item:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.stagger-item:nth-child(4) {
+  animation-delay: 0.3s;
 }

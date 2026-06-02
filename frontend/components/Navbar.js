@@ -8,6 +8,7 @@ import { useAuthStore } from '@/lib/authStore';
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const router = useRouter();
   const { user, token, logout, loadFromStorage } = useAuthStore();
 
@@ -15,6 +16,15 @@ export default function Navbar() {
     setIsMounted(true);
     loadFromStorage();
   }, [loadFromStorage]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -27,40 +37,67 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center">
-            <span className="text-2xl font-bold text-primary">BloodPlus</span>
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled
+          ? 'bg-white shadow-subtle'
+          : 'bg-white/80 backdrop-blur-md border-b border-border/20'
+      }`}
+      style={{ height: '80px' }}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div className="flex justify-between items-center h-full">
+          {/* Logo with Icon */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 bg-gradient-red rounded-button flex items-center justify-center group-hover:shadow-red-glow transition-all duration-300">
+              <span className="text-white text-lg font-bold">🩸</span>
+            </div>
+            <span className="text-xl font-bold bg-gradient-red bg-clip-text text-transparent hidden sm:inline">
+              BloodPlus
+            </span>
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-secondary hover:text-primary transition">
+          <div className="hidden lg:flex items-center gap-12">
+            <Link
+              href="/"
+              className="link-underline text-secondary-light hover:text-primary font-medium transition-colors duration-300"
+            >
               Home
             </Link>
-            <Link href="/blood-requests" className="text-secondary hover:text-primary transition">
-              Blood Requests
+            <Link
+              href="/blood-requests"
+              className="link-underline text-secondary-light hover:text-primary font-medium transition-colors duration-300"
+            >
+              Find Blood
             </Link>
-            <Link href="/request-blood" className="text-secondary hover:text-primary transition">
+            <Link
+              href="/request-blood"
+              className="link-underline text-secondary-light hover:text-primary font-medium transition-colors duration-300"
+            >
               Request Blood
             </Link>
-            <Link href="/about" className="text-secondary hover:text-primary transition">
-              About Us
+            <Link
+              href="/about"
+              className="link-underline text-secondary-light hover:text-primary font-medium transition-colors duration-300"
+            >
+              About
             </Link>
           </div>
 
           {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden lg:flex items-center gap-4">
             {token && user ? (
               <>
-                <Link href="/profile" className="text-secondary hover:text-primary transition">
+                <Link
+                  href="/profile"
+                  className="text-secondary-light hover:text-primary font-medium transition-colors duration-300"
+                >
                   Profile
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+                  className="btn-gradient px-6 py-2.5 text-sm font-semibold"
                 >
                   Logout
                 </button>
@@ -69,13 +106,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/auth/sign-in"
-                  className="text-secondary hover:text-primary transition"
+                  className="btn-ghost px-6 py-2.5 text-sm font-semibold"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+                  className="btn-gradient px-6 py-2.5 text-sm font-semibold"
                 >
                   Create Account
                 </Link>
@@ -84,13 +121,14 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-secondary hover:text-primary transition"
+              className="relative w-8 h-8 text-secondary hover:text-primary transition-colors duration-300"
+              aria-label="Toggle menu"
             >
               <svg
-                className="w-6 h-6"
+                className={`w-6 h-6 transition-all duration-300 ${isOpen ? 'rotate-45' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -105,76 +143,85 @@ export default function Navbar() {
             </button>
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {isOpen && (
-          <div className="md:hidden pb-4 space-y-2">
-            <Link
-              href="/"
-              className="block px-3 py-2 text-secondary hover:text-primary hover:bg-gray-100 rounded"
-              onClick={() => setIsOpen(false)}
-            >
-              Home
-            </Link>
-            <Link
-              href="/blood-requests"
-              className="block px-3 py-2 text-secondary hover:text-primary hover:bg-gray-100 rounded"
-              onClick={() => setIsOpen(false)}
-            >
-              Blood Requests
-            </Link>
-            <Link
-              href="/request-blood"
-              className="block px-3 py-2 text-secondary hover:text-primary hover:bg-gray-100 rounded"
-              onClick={() => setIsOpen(false)}
-            >
-              Request Blood
-            </Link>
-            <Link
-              href="/about"
-              className="block px-3 py-2 text-secondary hover:text-primary hover:bg-gray-100 rounded"
-              onClick={() => setIsOpen(false)}
-            >
-              About Us
-            </Link>
-            <hr className="my-2" />
-            {token && user ? (
-              <>
-                <Link
-                  href="/profile"
-                  className="block px-3 py-2 text-secondary hover:text-primary hover:bg-gray-100 rounded"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Profile
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-3 py-2 text-primary hover:bg-gray-100 rounded"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/auth/sign-in"
-                  className="block px-3 py-2 text-secondary hover:text-primary hover:bg-gray-100 rounded"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/auth/register"
-                  className="block px-3 py-2 bg-primary text-white hover:bg-red-700 rounded"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Create Account
-                </Link>
-              </>
-            )}
-          </div>
-        )}
       </div>
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="lg:hidden absolute top-[80px] left-0 right-0 bg-white border-b border-border shadow-lg animate-fade-in">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex flex-col gap-4">
+              <Link
+                href="/"
+                onClick={() => setIsOpen(false)}
+                className="text-secondary-light hover:text-primary font-medium py-2 transition-colors duration-300"
+              >
+                Home
+              </Link>
+              <Link
+                href="/blood-requests"
+                onClick={() => setIsOpen(false)}
+                className="text-secondary-light hover:text-primary font-medium py-2 transition-colors duration-300"
+              >
+                Find Blood
+              </Link>
+              <Link
+                href="/request-blood"
+                onClick={() => setIsOpen(false)}
+                className="text-secondary-light hover:text-primary font-medium py-2 transition-colors duration-300"
+              >
+                Request Blood
+              </Link>
+              <Link
+                href="/about"
+                onClick={() => setIsOpen(false)}
+                className="text-secondary-light hover:text-primary font-medium py-2 transition-colors duration-300"
+              >
+                About
+              </Link>
+
+              <div className="border-t border-border pt-4 mt-4 space-y-3">
+                {token && user ? (
+                  <>
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsOpen(false)}
+                      className="block text-secondary-light hover:text-primary font-medium py-2 transition-colors duration-300"
+                    >
+                      Profile
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsOpen(false);
+                      }}
+                      className="btn-gradient w-full py-2.5 text-sm font-semibold"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/auth/sign-in"
+                      onClick={() => setIsOpen(false)}
+                      className="btn-ghost w-full py-2.5 text-sm font-semibold text-center block"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      href="/auth/register"
+                      onClick={() => setIsOpen(false)}
+                      className="btn-gradient w-full py-2.5 text-sm font-semibold text-center block"
+                    >
+                      Create Account
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
