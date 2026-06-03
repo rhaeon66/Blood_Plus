@@ -140,7 +140,7 @@ export default function ProfilePage() {
               <tbody>
                 {donationHistory.map(donation => (
                   <tr key={donation.id} className="border-b hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-600">{new Date(donation.date).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{new Date(donation.donation_date).toLocaleDateString()}</td>
                     <td className="px-4 py-3 text-sm text-gray-600">{donation.location}</td>
                     <td className="px-4 py-3 text-sm text-gray-600">{donation.hospital}</td>
                     <td className="px-4 py-3 text-sm">

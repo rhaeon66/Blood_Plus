@@ -1,22 +1,20 @@
 import json
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from apps.users.models import User
-
-User = get_user_model()
 
 class Command(BaseCommand):
     help = 'Populate Bangladesh divisions, districts, upazilas data and create 5 test users'
 
     def handle(self, *args, **options):
+        User = get_user_model()
         self.stdout.write(self.style.SUCCESS('Starting data population...'))
         
         # Create 5 users
-        self.create_users()
+        self.create_users(User)
         
         self.stdout.write(self.style.SUCCESS('✓ Successfully populated database and created users'))
 
-    def create_users(self):
+    def create_users(self, User):
         """Create 5 test users with the Bangladesh data"""
         users_data = [
             {

@@ -1,8 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
-User = get_user_model()
-
 class Command(BaseCommand):
     help = 'Create a superuser with required fields'
 
@@ -12,6 +10,7 @@ class Command(BaseCommand):
         parser.add_argument('--nid', type=str, default='9999999999999')
 
     def handle(self, *args, **options):
+        User = get_user_model()
         username = options['username']
         password = options['password']
         nid = options['nid']

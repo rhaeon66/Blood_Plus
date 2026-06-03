@@ -1,66 +1,296 @@
-from rest_framework import viewsets, status, permissions
+from django.utils import timezone
+
+from rest_framework import status
+from rest_framework import permissions
+from rest_framework import viewsets
+
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+from rest_framework.filters import (
+    SearchFilter,
+    OrderingFilter,
+)
+
+from django_filters.rest_framework import (
+    DjangoFilterBackend,
+)
+
 from apps.donations.models import Donation
-from apps.donations.serializers import DonationSerializer, DonationCreateSerializer
+from apps.donations.serializers import (
+    DonationSerializer,
+    DonationCreateSerializer,
+    DonationUpdateSerializer,
+)
 
 
-class DonationViewSet(viewsets.ModelViewSet):
-    queryset = Donation.objects.all()
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filterset_fields = ['status', 'donation_date']
-    search_fields = ['donor__first_name', 'donor__last_name', 'hospital']
-    ordering_fields = ['created_at', 'donation_date']
-    ordering = ['-created_at']
+class DonationViewSet(
+    viewsets.ModelViewSet
+):
+    queryset = (
+        Donation.objects
+        .select_related(
+            "donor",
+            "blood_request",
+            "verified_by",
+        )
+        .all()
+    )
 
-    def get_serializer_class(self):
-        if self.action == 'create':
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly
+    ]
+
+    filter_backends = [
+        DjangoFilterBackend,
+        SearchFilter,
+        OrderingFilter,
+    ]
+
+    filterset_fields = [
+        "status",
+        "is_verified",
+    ]
+
+    search_fields = [
+        "donor__first_name",
+        "donor__last_name",
+        "hospital",
+        "location",
+    ]
+
+    ordering_fields = [
+        "created_at",
+        "donation_date",
+    ]
+
+    ordering = [
+        "-donation_date"
+    ]
+
+    def get_serializer_class(
+        self
+    ):
+        if self.action == "create":
             return DonationCreateSerializer
+
+        if self.action in [
+            "update",
+            "partial_update",
+        ]:
+            return DonationUpdateSerializer
+
         return DonationSerializer
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        instance = serializer.save()
-        output_serializer = DonationSerializer(instance)
-        return Response(output_serializer.data, status=status.HTTP_201_CREATED)
+    def perform_create(
+        self,
+        serializer
+    ):
+        serializer.save(
+            donor=self.request.user
+        )
 
-    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
-    def my_donations(self, request):
-        donations = self.queryset.filter(donor=request.user)
-        serializer = self.get_serializer(donations, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        queryset = super().get_queryset()
 
-    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
-    def history(self, request):
-        donations = self.queryset.filter(donor=request.user, status='completed')
-        page = self.paginate_queryset(donations)
+        donor_id = (
+            self.request.query_params.get(
+                "donor"
+            )
+        )
+
+        if donor_id:
+            queryset = queryset.filter(
+                donor_id=donor_id
+            )
+
+        return queryset
+
+    @action(
+        detail=False,
+        methods=["get"],
+        permission_classes=[
+            permissions.IsAuthenticated
+        ],
+    )
+    def my_donations(
+        self,
+        request
+    ):
+        queryset = (
+            self.get_queryset()
+            .filter(
+                donor=request.user
+            )
+        )
+
+        page = self.paginate_queryset(
+            queryset
+        )
+
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(donations, many=True)
-        return Response(serializer.data)
+            serializer = (
+                self.get_serializer(
+                    page,
+                    many=True
+                )
+            )
 
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
-    def mark_completed(self, request, pk=None):
+            return self.get_paginated_response(
+                serializer.data
+            )
+
+        serializer = (
+            self.get_serializer(
+                queryset,
+                many=True
+            )
+        )
+
+        return Response(
+            serializer.data
+        )
+
+    @action(
+        detail=False,
+        methods=["get"],
+        permission_classes=[
+            permissions.IsAuthenticated
+        ],
+    )
+    def history(
+        self,
+        request
+    ):
+        queryset = (
+            self.get_queryset()
+            .filter(
+                donor=request.user,
+                status="completed",
+                is_verified=True,
+            )
+        )
+
+        page = self.paginate_queryset(
+            queryset
+        )
+
+        if page is not None:
+            serializer = (
+                self.get_serializer(
+                    page,
+                    many=True
+                )
+            )
+
+            return self.get_paginated_response(
+                serializer.data
+            )
+
+        serializer = (
+            self.get_serializer(
+                queryset,
+                many=True
+            )
+        )
+
+        return Response(
+            serializer.data
+        )
+
+    @action(
+        detail=True,
+        methods=["post"],
+        permission_classes=[
+            permissions.IsAuthenticated
+        ],
+    )
+    def cancel(
+        self,
+        request,
+        pk=None
+    ):
         donation = self.get_object()
+
         if donation.donor != request.user:
             return Response(
-                {'detail': 'You do not have permission to mark this donation as completed.'},
-                status=status.HTTP_403_FORBIDDEN
+                {
+                    "detail":
+                    "You do not have permission to cancel this donation."
+                },
+                status=status.HTTP_403_FORBIDDEN,
             )
-        donation.status = 'completed'
-        donation.save()
-        return Response(DonationSerializer(donation).data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
-    def cancel(self, request, pk=None):
-        donation = self.get_object()
-        if donation.donor != request.user:
+        if donation.status == "completed":
             return Response(
-                {'detail': 'You do not have permission to cancel this donation.'},
-                status=status.HTTP_403_FORBIDDEN
+                {
+                    "detail":
+                    "Completed donations cannot be cancelled."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        donation.status = 'cancelled'
-        donation.save()
-        return Response(DonationSerializer(donation).data, status=status.HTTP_200_OK)
+
+        donation.status = "cancelled"
+
+        donation.save(
+            update_fields=[
+                "status",
+                "updated_at",
+            ]
+        )
+
+        serializer = (
+            DonationSerializer(
+                donation
+            )
+        )
+
+        return Response(
+            serializer.data
+        )
+
+    @action(
+        detail=True,
+        methods=["post"],
+        permission_classes=[
+            permissions.IsAdminUser
+        ],
+    )
+    def verify(
+        self,
+        request,
+        pk=None
+    ):
+        donation = self.get_object()
+
+        donation.status = "completed"
+
+        donation.is_verified = True
+
+        donation.verified_by = (
+            request.user
+        )
+
+        donation.verified_at = (
+            timezone.now()
+        )
+
+        donation.save(
+            update_fields=[
+                "status",
+                "is_verified",
+                "verified_by",
+                "verified_at",
+                "updated_at",
+            ]
+        )
+
+        serializer = (
+            DonationSerializer(
+                donation
+            )
+        )
+
+        return Response(
+            serializer.data
+        )
