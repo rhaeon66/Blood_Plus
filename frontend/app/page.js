@@ -2,17 +2,43 @@
 
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/authStore';
+import StatisticsSection from '@/components/StatisticsSection';
+import api from '@/lib/api';
 import { useEffect, useState } from 'react';
 
 export default function Home() {
   const [isMounted, setIsMounted] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+  const [stats, setStats] = useState({
+    lives_saved: 0,
+    active_donors: 0,
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
   const { user, token, loadFromStorage } = useAuthStore();
 
   useEffect(() => {
     setIsMounted(true);
     loadFromStorage();
+    fetchStats();
   }, [loadFromStorage]);
+
+  const fetchStats = async () => {
+    try {
+      setStatsLoading(true);
+      const response = await api.get(
+        '/auth/statistics/summary/'
+      );
+      setStats(response.data);
+    } catch (err) {
+      console.error('Error fetching stats:', err);
+      setStats({
+        lives_saved: 0,
+        active_donors: 0,
+      });
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,7 +62,7 @@ export default function Home() {
             <div className="animate-fade-in">
               <div className="mb-6 inline-block">
                 <span className="inline-block px-4 py-2 bg-primary-lighter/20 text-primary rounded-full text-sm font-semibold">
-                  ✓ Trusted by 1000+ Donors
+                  ✓ Trusted by {statsLoading ? '-' : stats.active_donors}+ Donors
                 </span>
               </div>
               
@@ -125,15 +151,17 @@ export default function Home() {
                     <div className="space-y-4">
                       <div className="p-4 bg-primary-lighter/10 rounded-button text-center">
                         <p className="text-sm text-secondary-light">Lives Saved</p>
-                        <p className="text-2xl font-bold text-primary">500+</p>
+                        <p className="text-2xl font-bold text-primary">
+                          {statsLoading ? '-' : stats.lives_saved}
+                          {!statsLoading && stats.lives_saved > 0 && '+'}
+                        </p>
                       </div>
                       <div className="p-4 bg-primary-lighter/10 rounded-button text-center">
                         <p className="text-sm text-secondary-light">Active Donors</p>
-                        <p className="text-2xl font-bold text-primary">1000+</p>
-                      </div>
-                      <div className="p-4 bg-primary-lighter/10 rounded-button text-center">
-                        <p className="text-sm text-secondary-light">Hospitals Partnered</p>
-                        <p className="text-2xl font-bold text-primary">50+</p>
+                        <p className="text-2xl font-bold text-primary">
+                          {statsLoading ? '-' : stats.active_donors}
+                          {!statsLoading && stats.active_donors > 0 && '+'}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -209,67 +237,8 @@ export default function Home() {
       {/* Section Divider */}
       <div className="section-divider max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"></div>
 
-      {/* Impact Statistics Section */}
-      <section className="py-20 md:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 md:mb-20">
-            <h2 className="text-heading-lg text-secondary mb-4">Our Impact</h2>
-            <p className="text-lg text-secondary-light max-w-2xl mx-auto">
-              Together, we're saving lives every single day across Bangladesh.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Stat Card 1 */}
-            <div className="premium-card p-8 text-center hover-lift group">
-              <div className="mb-4 flex justify-center">
-                <div className="w-14 h-14 bg-primary-lighter/20 rounded-button flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                  <span className="text-2xl">👥</span>
-                </div>
-              </div>
-              <h3 className="text-display-md text-primary font-bold mb-2">1000+</h3>
-              <p className="text-secondary-light font-medium">Active Donors</p>
-              <p className="text-xs text-secondary-light mt-3">Growing community of lifesavers</p>
-            </div>
-
-            {/* Stat Card 2 */}
-            <div className="premium-card p-8 text-center hover-lift group">
-              <div className="mb-4 flex justify-center">
-                <div className="w-14 h-14 bg-primary-lighter/20 rounded-button flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                  <span className="text-2xl">❤️</span>
-                </div>
-              </div>
-              <h3 className="text-display-md text-primary font-bold mb-2">500+</h3>
-              <p className="text-secondary-light font-medium">Lives Saved</p>
-              <p className="text-xs text-secondary-light mt-3">Real lives changed forever</p>
-            </div>
-
-            {/* Stat Card 3 */}
-            <div className="premium-card p-8 text-center hover-lift group">
-              <div className="mb-4 flex justify-center">
-                <div className="w-14 h-14 bg-primary-lighter/20 rounded-button flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                  <span className="text-2xl">🏥</span>
-                </div>
-              </div>
-              <h3 className="text-display-md text-primary font-bold mb-2">50+</h3>
-              <p className="text-secondary-light font-medium">Hospitals Partner</p>
-              <p className="text-xs text-secondary-light mt-3">Trusted by leading healthcare providers</p>
-            </div>
-
-            {/* Stat Card 4 */}
-            <div className="premium-card p-8 text-center hover-lift group">
-              <div className="mb-4 flex justify-center">
-                <div className="w-14 h-14 bg-primary-lighter/20 rounded-button flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                  <span className="text-2xl">🛡️</span>
-                </div>
-              </div>
-              <h3 className="text-display-md text-primary font-bold mb-2">24/7</h3>
-              <p className="text-secondary-light font-medium">Emergency Support</p>
-              <p className="text-xs text-secondary-light mt-3">Always here when you need us</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Impact Statistics Section - Dynamic */}
+      <StatisticsSection />
 
       {/* CTA Section */}
       <section className="py-20 md:py-32 bg-gradient-red">

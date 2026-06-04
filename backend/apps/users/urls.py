@@ -11,6 +11,8 @@ from apps.users.views import (
     UserListView,
 )
 
+from apps.users.stats import StatisticsViewSet
+
 app_name = "users"
 
 urlpatterns = [
@@ -42,5 +44,11 @@ urlpatterns = [
         "users/",
         UserListView.as_view(),
         name="user-list",
+    ),
+
+    path(
+        "statistics/summary/",
+        StatisticsViewSet.as_view({'get': 'summary'}),
+        name="statistics-summary",
     ),
 ]

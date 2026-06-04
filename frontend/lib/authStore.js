@@ -4,6 +4,7 @@ export const useAuthStore = create((set) => ({
   token: null,
   user: null,
   isLoading: false,
+  isInitialized: false,
   error: null,
 
   setToken: (token) => set({ token }),
@@ -39,10 +40,16 @@ export const useAuthStore = create((set) => ({
         set({
           token,
           user: JSON.parse(user),
+          isInitialized: true,
+        });
+      } else {
+        set({
+          isInitialized: true,
         });
       }
     } catch (error) {
       console.error(error);
+      set({ isInitialized: true });
     }
   },
 

@@ -1,4 +1,5 @@
 from django.db import models
+from .managers import CustomUserManager
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 import uuid
@@ -17,6 +18,7 @@ BLOOD_GROUP_CHOICES = (
 
 
 class User(AbstractUser):
+    username = None
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -84,6 +86,7 @@ class User(AbstractUser):
         "first_name",
         "last_name",
     ]
+    objects = CustomUserManager()
 
     class Meta:
         ordering = ["-created_at"]

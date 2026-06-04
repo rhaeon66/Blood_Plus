@@ -27,6 +27,7 @@ class DonationSerializer(serializers.ModelSerializer):
             "is_verified",
             "verified_by",
             "verified_at",
+            "approved_at",
             "proof_image",
             "created_at",
             "updated_at",
@@ -38,6 +39,7 @@ class DonationSerializer(serializers.ModelSerializer):
             "is_verified",
             "verified_by",
             "verified_at",
+            "approved_at",
             "created_at",
             "updated_at",
         ]
@@ -63,7 +65,7 @@ class DonationCreateSerializer(
         self,
         value
     ):
-        if value <= 0:
+        if value and value <= 0:
             raise serializers.ValidationError(
                 "Units donated must be greater than 0."
             )
@@ -79,7 +81,35 @@ class DonationCreateSerializer(
         )
 
         validated_data["status"] = (
-            "scheduled"
+            "pending"
+        )
+
+        return Donation.objects.create(
+            **validated_data
+        )
+
+
+class QuickDonationSerializer(
+    serializers.ModelSerializer
+):
+    """Serializer for quick donation (Donate Now button)"""
+    class Meta:
+        model = Donation
+
+        fields = [
+            "blood_request",
+        ]
+
+    def create(
+        self,
+        validated_data
+    ):
+        validated_data["donor"] = (
+            self.context["request"].user
+        )
+
+        validated_data["status"] = (
+            "pending"
         )
 
         return Donation.objects.create(

@@ -7,8 +7,10 @@ import uuid
 class Donation(models.Model):
 
     STATUS_CHOICES = (
-        ("scheduled", "Scheduled"),
+        ("pending", "Pending"),
+        ("approved", "Approved"),
         ("completed", "Completed"),
+        ("rejected", "Rejected"),
         ("cancelled", "Cancelled"),
     )
 
@@ -32,10 +34,15 @@ class Donation(models.Model):
         related_name="donations",
     )
 
-    donation_date = models.DateTimeField()
+    donation_date = models.DateTimeField(
+        null=True,
+        blank=True
+    )
 
     location = models.CharField(
-        max_length=255
+        max_length=255,
+        blank=True,
+        null=True
     )
 
     hospital = models.CharField(
@@ -50,7 +57,7 @@ class Donation(models.Model):
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default="scheduled",
+        default="pending",
     )
 
     notes = models.TextField(
@@ -73,6 +80,12 @@ class Donation(models.Model):
     verified_at = models.DateTimeField(
         null=True,
         blank=True,
+    )
+
+    approved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Date when donation was approved by blood request requester"
     )
 
     proof_image = models.ImageField(

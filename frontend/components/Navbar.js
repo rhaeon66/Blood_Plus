@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/lib/authStore';
 
@@ -10,7 +10,12 @@ export default function Navbar() {
   const [isMounted, setIsMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const { user, token, logout, loadFromStorage } = useAuthStore();
+
+  const isActive = (path) => {
+    return pathname === path;
+  };
 
   useEffect(() => {
     setIsMounted(true);
@@ -61,25 +66,53 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-12">
             <Link
               href="/"
-              className="link-underline text-secondary-light hover:text-primary font-medium transition-colors duration-300"
+              className={`link-underline font-medium transition-colors duration-300 ${
+                isActive('/') 
+                  ? 'text-primary font-bold' 
+                  : 'text-secondary-light hover:text-primary'
+              }`}
             >
               Home
             </Link>
+            {token && user && (
+              <Link
+                href="/profile"
+                className={`link-underline font-medium transition-colors duration-300 ${
+                  isActive('/profile')
+                    ? 'text-primary font-bold'
+                    : 'text-secondary-light hover:text-primary'
+                }`}
+              >
+                Profile
+              </Link>
+            )}
             <Link
               href="/blood-requests"
-              className="link-underline text-secondary-light hover:text-primary font-medium transition-colors duration-300"
+              className={`link-underline font-medium transition-colors duration-300 ${
+                isActive('/blood-requests')
+                  ? 'text-primary font-bold'
+                  : 'text-secondary-light hover:text-primary'
+              }`}
             >
               Find Blood
             </Link>
             <Link
               href="/request-blood"
-              className="link-underline text-secondary-light hover:text-primary font-medium transition-colors duration-300"
+              className={`link-underline font-medium transition-colors duration-300 ${
+                isActive('/request-blood')
+                  ? 'text-primary font-bold'
+                  : 'text-secondary-light hover:text-primary'
+              }`}
             >
               Request Blood
             </Link>
             <Link
               href="/about"
-              className="link-underline text-secondary-light hover:text-primary font-medium transition-colors duration-300"
+              className={`link-underline font-medium transition-colors duration-300 ${
+                isActive('/about')
+                  ? 'text-primary font-bold'
+                  : 'text-secondary-light hover:text-primary'
+              }`}
             >
               About
             </Link>
@@ -88,20 +121,12 @@ export default function Navbar() {
           {/* Desktop Auth Buttons */}
           <div className="hidden lg:flex items-center gap-4">
             {token && user ? (
-              <>
-                <Link
-                  href="/profile"
-                  className="text-secondary-light hover:text-primary font-medium transition-colors duration-300"
-                >
-                  Profile
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="btn-gradient px-6 py-2.5 text-sm font-semibold"
-                >
-                  Logout
-                </button>
-              </>
+              <button
+                onClick={handleLogout}
+                className="btn-gradient px-6 py-2.5 text-sm font-semibold"
+              >
+                Logout
+              </button>
             ) : (
               <>
                 <Link
@@ -153,52 +178,72 @@ export default function Navbar() {
               <Link
                 href="/"
                 onClick={() => setIsOpen(false)}
-                className="text-secondary-light hover:text-primary font-medium py-2 transition-colors duration-300"
+                className={`font-medium py-2 transition-colors duration-300 ${
+                  isActive('/') 
+                    ? 'text-primary font-bold' 
+                    : 'text-secondary-light hover:text-primary'
+                }`}
               >
                 Home
               </Link>
+              {token && user && (
+                <Link
+                  href="/profile"
+                  onClick={() => setIsOpen(false)}
+                  className={`font-medium py-2 transition-colors duration-300 ${
+                    isActive('/profile')
+                      ? 'text-primary font-bold'
+                      : 'text-secondary-light hover:text-primary'
+                  }`}
+                >
+                  Profile
+                </Link>
+              )}
               <Link
                 href="/blood-requests"
                 onClick={() => setIsOpen(false)}
-                className="text-secondary-light hover:text-primary font-medium py-2 transition-colors duration-300"
+                className={`font-medium py-2 transition-colors duration-300 ${
+                  isActive('/blood-requests')
+                    ? 'text-primary font-bold'
+                    : 'text-secondary-light hover:text-primary'
+                }`}
               >
                 Find Blood
               </Link>
               <Link
                 href="/request-blood"
                 onClick={() => setIsOpen(false)}
-                className="text-secondary-light hover:text-primary font-medium py-2 transition-colors duration-300"
+                className={`font-medium py-2 transition-colors duration-300 ${
+                  isActive('/request-blood')
+                    ? 'text-primary font-bold'
+                    : 'text-secondary-light hover:text-primary'
+                }`}
               >
                 Request Blood
               </Link>
               <Link
                 href="/about"
                 onClick={() => setIsOpen(false)}
-                className="text-secondary-light hover:text-primary font-medium py-2 transition-colors duration-300"
+                className={`font-medium py-2 transition-colors duration-300 ${
+                  isActive('/about')
+                    ? 'text-primary font-bold'
+                    : 'text-secondary-light hover:text-primary'
+                }`}
               >
                 About
               </Link>
 
               <div className="border-t border-border pt-4 mt-4 space-y-3">
                 {token && user ? (
-                  <>
-                    <Link
-                      href="/profile"
-                      onClick={() => setIsOpen(false)}
-                      className="block text-secondary-light hover:text-primary font-medium py-2 transition-colors duration-300"
-                    >
-                      Profile
-                    </Link>
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setIsOpen(false);
-                      }}
-                      className="btn-gradient w-full py-2.5 text-sm font-semibold"
-                    >
-                      Logout
-                    </button>
-                  </>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsOpen(false);
+                    }}
+                    className="btn-gradient w-full py-2.5 text-sm font-semibold"
+                  >
+                    Logout
+                  </button>
                 ) : (
                   <>
                     <Link

@@ -21,6 +21,7 @@ from apps.donations.serializers import (
     DonationSerializer,
     DonationCreateSerializer,
     DonationUpdateSerializer,
+    QuickDonationSerializer,
 )
 
 
@@ -196,6 +197,96 @@ class DonationViewSet(
 
         return Response(
             serializer.data
+        )
+
+    @action(
+        detail=True,
+        methods=["post"],
+        permission_classes=[
+            permissions.IsAuthenticated
+        ],
+    )
+    def approve(self, request, pk=None):
+        """
+        Approve a donation (only requestor can approve)
+        Automatically sets approved_at timestamp
+        """
+        donation = self.get_object()
+
+        # Check if the user is the blood request requester
+        if (
+            donation.blood_request
+            and donation.blood_request.requester
+            != request.user
+        ):
+            return Response(
+                {
+                    "error": "Only the blood request requester can approve donations"
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if donation.status != "pending":
+            return Response(
+                {
+                    "error": f"Cannot approve a {donation.status} donation"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        donation.status = "approved"
+        donation.approved_at = timezone.now()
+        donation.save()
+
+        return Response(
+            DonationSerializer(
+                donation
+            ).data,
+            status=status.HTTP_200_OK,
+        )
+
+    @action(
+        detail=True,
+        methods=["post"],
+        permission_classes=[
+            permissions.IsAuthenticated
+        ],
+    )
+    def reject(self, request, pk=None):
+        """
+        Reject a donation (only requestor can reject)
+        """
+        donation = self.get_object()
+
+        # Check if the user is the blood request requester
+        if (
+            donation.blood_request
+            and donation.blood_request.requester
+            != request.user
+        ):
+            return Response(
+                {
+                    "error": "Only the blood request requester can reject donations"
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if donation.status != "pending":
+            return Response(
+                {
+                    "error": f"Cannot reject a {donation.status} donation"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        donation.status = "rejected"
+        donation.save()
+
+        return Response(
+            DonationSerializer(
+                donation
+            ).data,
+            status=status.HTTP_200_OK,
         )
 
     @action(
