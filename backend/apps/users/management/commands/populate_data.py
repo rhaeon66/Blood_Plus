@@ -12,7 +12,7 @@ class Command(BaseCommand):
         # Create 5 users
         self.create_users(User)
         
-        self.stdout.write(self.style.SUCCESS('✓ Successfully populated database and created users'))
+        self.stdout.write(self.style.SUCCESS(' Successfully populated database and created users'))
 
     def create_users(self, User):
         """Create 5 test users with the Bangladesh data"""
@@ -90,14 +90,15 @@ class Command(BaseCommand):
         ]
 
         for user_data in users_data:
-            password = user_data.pop('password')
-            username = user_data['username']
+            password = password = user_data.pop('password')
+            user_data.pop('username', None)
+            phone_number = user_data['phone_number']
             
             # Check if user already exists
-            if User.objects.filter(username=username).exists():
-                self.stdout.write(self.style.WARNING(f'User {username} already exists, skipping...'))
+            if User.objects.filter(phone_number=phone_number).exists():
+                self.stdout.write(self.style.WARNING(f'User {phone_number} already exists, skipping...'))
                 continue
             
             # Create user
             user = User.objects.create_user(**user_data, password=password)
-            self.stdout.write(self.style.SUCCESS(f'✓ Created user: {username}'))
+            self.stdout.write(self.style.SUCCESS(f' Created user: {phone_number}'))

@@ -38,66 +38,91 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="bg-white rounded-lg shadow-sm p-8">
-        <h1 className="text-3xl font-bold text-secondary mb-2">Sign In</h1>
-        <p className="text-gray-600 mb-8">Welcome back to BloodPlus</p>
-
-        {error && (
-          <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
-            {error}
+    <div className="bg-bg-primary min-h-screen">
+      {/* Hero Section */}
+      <section className="pt-16 pb-8 md:pt-20 md:pb-12 hero-gradient relative">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
+          <div className="mb-4 inline-block">
+            <span className="inline-block px-4 py-2 bg-primary-lighter/20 text-primary rounded-full text-sm font-semibold">
+              🔐 Sign In to BloodPlus
+            </span>
           </div>
-        )}
+          <h1 className="text-heading-lg text-secondary mb-4 leading-tight">
+            Welcome
+            <span className="text-primary-gradient"> Back</span>
+          </h1>
+          <p className="text-xl text-secondary-light max-w-2xl leading-relaxed">
+            Sign in to your account and continue your mission to save lives. Every moment counts.
+          </p>
+        </div>
+      </section>
 
-        <form onSubmit={handleSubmit}>
-          {/* Phone Number */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-secondary mb-2">
-              Phone Number *
-            </label>
-            <input
-              type="tel"
-              name="phone_number"
-              value={formData.phone_number}
-              onChange={handleChange}
-              placeholder="+880 1700 000000"
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-
-          {/* Password */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-secondary mb-2">
-              Password *
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+      {/* Form Section */}
+      <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="premium-card p-8">
+          <div className="mb-8">
+            <h2 className="text-heading-sm text-secondary mb-2">Sign In</h2>
+            <p className="text-secondary-light">Enter your credentials to access your account</p>
           </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary text-white py-3 rounded-lg hover:bg-red-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Signing In...' : 'Sign In'}
-          </button>
-        </form>
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 p-4 rounded-button mb-6">
+              {error}
+            </div>
+          )}
 
-        {/* Create Account Link */}
-        <p className="text-center text-gray-600 mt-6">
-          Don't have an account?{' '}
-          <Link href="/auth/register" className="text-primary hover:underline font-semibold">
-            Create Account
-          </Link>
-        </p>
+          <form onSubmit={handleSubmit}>
+            {/* Phone Number */}
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-secondary mb-2">
+                Phone Number *
+              </label>
+              <input
+                type="tel"
+                name="phone_number"
+                value={formData.phone_number}
+                onChange={handleChange}
+                placeholder="+8801700000000"
+                required
+                className="w-full px-4 py-3 border border-border rounded-button focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+              />
+            </div>
+
+            {/* Password */}
+            <div className="mb-8">
+              <label className="block text-sm font-semibold text-secondary mb-2">
+                Password *
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-3 border border-border rounded-button focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full btn-gradient py-3 rounded-button text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+            >
+              {loading ? 'Signing In...' : 'Sign In'}
+            </button>
+          </form>
+
+          {/* Create Account Link */}
+          <div className="mt-8 pt-8 border-t border-border text-center">
+            <p className="text-secondary-light mb-2">
+              Don't have an account?
+            </p>
+            <Link href="/auth/register" className="text-primary hover:text-primary-dark font-semibold link-underline">
+              Create Account
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

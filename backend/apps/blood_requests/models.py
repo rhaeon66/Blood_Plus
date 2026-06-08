@@ -1,5 +1,6 @@
 from django.db import models
 from apps.users.models import User, BLOOD_GROUP_CHOICES
+from apps.locations.models import Upazila
 import uuid
 
 class BloodRequest(models.Model):
@@ -15,10 +16,7 @@ class BloodRequest(models.Model):
     blood_group = models.CharField(max_length=3, choices=BLOOD_GROUP_CHOICES)
     units_needed = models.IntegerField(default=1)
     hospital_name = models.CharField(max_length=200)
-    location = models.CharField(max_length=200)
-    division = models.CharField(max_length=50)
-    district = models.CharField(max_length=100)
-    upazila = models.CharField(max_length=100)
+    location = models.ForeignKey(Upazila, on_delete=models.PROTECT, related_name='blood_requests')
     address = models.TextField()
     description = models.TextField(blank=True, null=True)
     is_fulfilled = models.BooleanField(default=False)
@@ -29,10 +27,26 @@ class BloodRequest(models.Model):
     class Meta:
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['blood_group']),
-            models.Index(fields=['status']),
+            models.Index(fields=['blood_group', 'status']),
+            models.Index(fields=['location']),
+            models.Index(fields=['requester']),
             models.Index(fields=['created_at']),
         ]
+
+    @property
+    def division(self):
+        """Get division from location upazila"""
+        return self.location.district.division.name if self.location else None
+    
+    @property
+    def district(self):
+        """Get district from location upazila"""
+        return self.location.district.name if self.location else None
+    
+    @property
+    def upazila_name(self):
+        """Get upazila name from location"""
+        return self.location.name if self.location else None
 
     def __str__(self):
         return f"Blood Request: {self.patient_name} ({self.blood_group})"

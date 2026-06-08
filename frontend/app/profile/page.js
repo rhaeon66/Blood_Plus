@@ -4,6 +4,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/lib/authStore';
+import PersonalInfoSection from '@/components/profile/PersonalInfoSection';
+import DonationStatsSection from '@/components/profile/DonationStatsSection';
+import ScheduleDonationModal from '@/components/profile/ScheduleDonationModal';
+import DonationHistorySection from '@/components/profile/DonationHistorySection';
+import EditProfileModal from '@/components/profile/EditProfileModal';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -11,6 +16,25 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [donationHistory, setDonationHistory] = useState([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState('');
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [scheduleError, setScheduleError] = useState('');
+  const [editSuccess, setEditSuccess] = useState(''); // State for success message in modal
+  
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    phone_number: '',
+    nid: '',
+    blood_group: '',
+    address: '',
+    division: '',
+    district: '',
+    upazila: '',
+  });
 
   useEffect(() => {
     loadFromStorage();
@@ -20,13 +44,21 @@ export default function ProfilePage() {
     try {
       setLoading(true);
       
-      // Fetch profile first
       console.log('Fetching profile from /auth/profile/');
       const profileRes = await api.get('/auth/profile/');
       console.log('Profile response:', profileRes.data);
       setProfile(profileRes.data);
       
-      // Fetch donations second
+      // Initialize form data
+      setFormData({
+        first_name: profileRes.data.first_name || '',
+        last_name: profileRes.data.last_name || '',
+        phone_number: profileRes.data.phone_number || '',
+        nid: profileRes.data.nid || '',
+        blood_group: profileRes.data.blood_group || 'O+',
+        address: profileRes.data.address || '',
+      });
+      
       console.log('Fetching donations from /donations/my_donations/');
       const donationRes = await api.get('/donations/my_donations/');
       console.log('Donations response:', donationRes.data);
@@ -56,9 +88,76 @@ export default function ProfilePage() {
     fetchProfile();
   }, [isInitialized, token, router]);
 
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSaveProfile = async () => {
+    setEditError('');
+    setEditSuccess('');
+    setEditLoading(true);
+
+    try {
+      const response = await api.put('/auth/profile/', formData);
+      setProfile(response.data);
+      setEditSuccess('Profile updated successfully!');
+      setTimeout(() => {
+        setShowEditModal(false);
+        setEditSuccess('');
+      }, 2000);
+    } catch (error) {
+      const errorData = error.response?.data;
+      if (typeof errorData === 'object') {
+        const errorMessages = Object.entries(errorData)
+          .map(([field, messages]) => {
+            const msg = Array.isArray(messages) ? messages[0] : messages;
+            return msg;
+          })
+          .join(', ');
+        setEditError(errorMessages);
+      } else {
+        setEditError('Failed to update profile. Please try again.');
+      }
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleScheduleDonation = async (donationData) => {
+    setScheduleError('');
+    setEditSuccess(''); // Clear any previous success message from edit modal
+    setScheduleLoading(true);
+
+    try {
+      // Assuming a POST endpoint for scheduling donations
+      const response = await api.post('/donations/schedule/', donationData);
+      console.log('Donation scheduled:', response.data);
+      setEditSuccess('Donation scheduled successfully!'); // Reusing editSuccess for simplicity, consider a separate state
+      // Optionally refetch donation history to show the newly scheduled donation
+      fetchProfile(); 
+      setTimeout(() => {
+        setShowScheduleModal(false);
+        setEditSuccess('');
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to schedule donation:', error);
+      const errorData = error.response?.data;
+      if (errorData) {
+        const messages = Object.values(errorData).flat().join(' ');
+        setScheduleError(messages);
+      } else {
+        setScheduleError('Failed to schedule donation. Please try again.');
+      }
+    } finally {
+      setScheduleLoading(false);
+    }
+  };
   const getLastDonationDate = () => {
     if (donationHistory.length === 0) return null;
-    // Sort by donation_date descending and get the first one
     const sorted = [...donationHistory].sort((a, b) => 
       new Date(b.donation_date) - new Date(a.donation_date)
     );
@@ -88,168 +187,57 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-secondary mb-8">My Profile</h1>
-
-      {/* Profile Information */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-        <div className="bg-white rounded-lg shadow-sm p-8 md:col-span-2">
-          <h2 className="text-2xl font-bold text-secondary mb-6">Personal Information</h2>
-          <div className="space-y-4">
-            <div className="flex justify-between border-b pb-4">
-              <span className="font-semibold text-gray-700">Full Name</span>
-              <span className="text-gray-600">{profile.full_name}</span>
-            </div>
-            <div className="flex justify-between border-b pb-4">
-              <span className="font-semibold text-gray-700">Phone Number</span>
-              <span className="text-gray-600">{profile.phone_number}</span>
-            </div>
-            <div className="flex justify-between border-b pb-4">
-              <span className="font-semibold text-gray-700">NID</span>
-              <span className="text-gray-600">{profile.nid}</span>
-            </div>
-            <div className="flex justify-between border-b pb-4">
-              <span className="font-semibold text-gray-700">Blood Group</span>
-              <span className="text-gray-600 font-bold text-primary">{profile.blood_group}</span>
-            </div>
-            <div className="flex justify-between border-b pb-4">
-              <span className="font-semibold text-gray-700">Division</span>
-              <span className="text-gray-600">{profile.division}</span>
-            </div>
-            <div className="flex justify-between border-b pb-4">
-              <span className="font-semibold text-gray-700">District</span>
-              <span className="text-gray-600">{profile.district}</span>
-            </div>
-            <div className="flex justify-between border-b pb-4">
-              <span className="font-semibold text-gray-700">Upazila</span>
-              <span className="text-gray-600">{profile.upazila}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold text-gray-700">Address</span>
-              <span className="text-gray-600">{profile.address}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="bg-white rounded-lg shadow-sm p-8">
-          <h2 className="text-2xl font-bold text-secondary mb-6">Donation Stats</h2>
-          <div className="space-y-4">
-            <div className="bg-primary bg-opacity-10 rounded-lg p-4 text-center">
-              <p className="text-3xl font-bold text-primary">{donationHistory.length}</p>
-              <p className="text-gray-600 text-sm">Times Donated</p>
-            </div>
-            <div className="bg-green-100 rounded-lg p-4 text-center">
-              <p className="text-3xl font-bold text-green-600">{profile.blood_group}</p>
-              <p className="text-gray-600 text-sm">Blood Type</p>
-            </div>
-            {getLastDonationDate() && (
-              <div className="bg-blue-100 rounded-lg p-4 text-center">
-                <p className="text-sm font-semibold text-blue-600">Last Donated</p>
-                <p className="text-lg font-bold text-blue-700 mt-1">{getLastDonationDate()}</p>
-              </div>
-            )}
-            <button className="w-full bg-primary text-white py-2 rounded-lg hover:bg-red-700 transition font-semibold">
-              Schedule Donation
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Edit Profile Section */}
-      <div className="bg-white rounded-lg shadow-sm p-8 mb-12">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-secondary">Edit Profile</h2>
-          <button className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-700 transition font-semibold text-sm">
-            Edit Information
-          </button>
-        </div>
-        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-          <p className="text-gray-600 mb-4">
-            Update your personal information and preferences
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
-              <input 
-                type="text" 
-                value={profile.full_name} 
-                disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-600 cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-              <input 
-                type="tel" 
-                value={profile.phone_number} 
-                disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-600 cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Blood Group</label>
-              <input 
-                type="text" 
-                value={profile.blood_group} 
-                disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-600 cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Address</label>
-              <input 
-                type="text" 
-                value={profile.address} 
-                disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-600 cursor-not-allowed"
-              />
-            </div>
-          </div>
-          <p className="text-sm text-gray-500 mt-4">
-            📝 Contact support to edit your profile information
+    <div className="bg-bg-primary min-h-screen">
+      {/* Hero Section */}
+      <section className="pt-16 pb-8 md:pt-20 md:pb-12 hero-gradient relative">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
+         
+          <h1 className="text-heading-lg text-secondary mb-4 leading-tight">
+            Your Blood Donor
+            <span className="text-primary-gradient"> Profile</span>
+          </h1>
+          <p className="text-xl text-secondary-light max-w-2xl leading-relaxed">
+            Manage your profile information and view your donation history.
           </p>
         </div>
+      </section>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          <PersonalInfoSection profile={profile} onEditClick={() => setShowEditModal(true)} />
+          <DonationStatsSection
+            profile={profile}
+            donationHistory={donationHistory}
+            getLastDonationDate={getLastDonationDate}
+          />
+        </div>
+
+        {/* The "Update Your Information" section is now redundant as the edit button is in PersonalInfoSection */}
+        {/* Keeping the Donation History section here as per the request */}
+
+        <DonationHistorySection donationHistory={donationHistory} />
       </div>
 
-      {/* Donation History */}
-      <div className="bg-white rounded-lg shadow-sm p-8">
-        <h2 className="text-2xl font-bold text-secondary mb-6">Donation History</h2>
-        {donationHistory.length === 0 ? (
-          <p className="text-gray-600">No donations yet. Start donating today!</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Date</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Location</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Hospital</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {donationHistory.map(donation => (
-                  <tr key={donation.id} className="border-b hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-600">{new Date(donation.donation_date).toLocaleDateString()}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{donation.location}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{donation.hospital}</td>
-                    <td className="px-4 py-3 text-sm">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        donation.status === 'completed' 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        {donation.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      <EditProfileModal
+        showEditModal={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        formData={formData}
+        onInputChange={handleEditInputChange}
+        onSave={handleSaveProfile}
+        loading={editLoading}
+        error={editError}
+        success={editSuccess}
+      />
+
+      <ScheduleDonationModal
+        showScheduleModal={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+        onSave={handleScheduleDonation}
+        loading={scheduleLoading}
+        error={scheduleError}
+        success={editSuccess} // Reusing editSuccess for simplicity
+      />
     </div>
   );
 }

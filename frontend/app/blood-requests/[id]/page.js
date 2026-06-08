@@ -302,85 +302,202 @@ export default function BloodRequestDetailPage() {
 
       {/* Donations List */}
       {donations.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold text-secondary mb-6">
-            Donations ({donations.length})
+        <div className="mt-16 pt-12 border-t-2 border-gray-200">
+          <h2 className="text-2xl font-bold text-secondary mb-2">
+            Donation Responses ({donations.length})
           </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {donations.map((donation) => (
-              <div
-                key={donation.id}
-                className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-primary"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-bold text-lg text-secondary">
-                      {donation.donor.first_name}{' '}
-                      {donation.donor.last_name}
+          
+          {/* Donations by Status */}
+          {(() => {
+            const pendingDonations = donations.filter(d => d.status === 'pending');
+            const approvedDonations = donations.filter(d => d.status === 'approved');
+            const rejectedDonations = donations.filter(d => d.status === 'rejected');
+            
+            return (
+              <>
+                {/* Approved Donations */}
+                {approvedDonations.length > 0 && (
+                  <div className="mb-12">
+                    <h3 className="text-lg font-semibold text-green-700 mb-4 flex items-center">
+                      <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                      Accepted ({approvedDonations.length})
                     </h3>
-                    <p className="text-sm text-gray-500">
-                      {donation.donor.phone}
-                    </p>
-                  </div>
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      donation.status === 'pending'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : donation.status === 'approved'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}
-                  >
-                    {donation.status.charAt(0).toUpperCase() +
-                      donation.status.slice(1)}
-                  </span>
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {approvedDonations.map((donation) => (
+                        <div
+                          key={donation.id}
+                          className="bg-green-50 rounded-lg shadow-sm p-6 border-l-4 border-green-500"
+                        >
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="font-bold text-lg text-secondary">
+                                {donation.donor.first_name}{' '}
+                                {donation.donor.last_name}
+                              </h3>
+                              <p className="text-sm text-gray-500">
+                                {donation.donor.phone}
+                              </p>
+                            </div>
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                              ✓ Accepted
+                            </span>
+                          </div>
 
-                <div className="space-y-2 mb-4 text-sm text-gray-600">
-                  <p>
-                    <strong>Blood Group:</strong>{' '}
-                    {donation.donor.blood_group}
-                  </p>
-                  <p>
-                    <strong>Registered:</strong>{' '}
-                    {new Date(donation.created_at).toLocaleDateString()}
-                  </p>
-                </div>
+                          <div className="space-y-2 mb-4 text-sm text-gray-600">
+                            <p>
+                              <strong>Blood Group:</strong>{' '}
+                              {donation.donor.blood_group}
+                            </p>
+                            <p>
+                              <strong>Accepted:</strong>{' '}
+                              {new Date(donation.approved_at).toLocaleDateString()}
+                            </p>
+                          </div>
 
-                {donation.notes && (
-                  <p className="text-sm text-gray-600 mb-4">
-                    <strong>Notes:</strong> {donation.notes}
-                  </p>
-                )}
-
-                {isRequestor && donation.status === 'pending' && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() =>
-                        handleApproveDonation(
-                          donation.id
-                        )
-                      }
-                      className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition font-semibold text-sm"
-                    >
-                      Accept
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleRejectDonation(
-                          donation.id
-                        )
-                      }
-                      className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition font-semibold text-sm"
-                    >
-                      Reject
-                    </button>
+                          {donation.notes && (
+                            <p className="text-sm text-gray-600">
+                              <strong>Notes:</strong> {donation.notes}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
-              </div>
-            ))}
-          </div>
+
+                {/* Pending Donations - HIGHLIGHTED AT BOTTOM */}
+                {pendingDonations.length > 0 && (
+                  <div className="mb-8">
+                    <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-6 mb-6">
+                      <h3 className="text-lg font-semibold text-orange-800 mb-2 flex items-center">
+                        <span className="inline-block w-3 h-3 bg-orange-500 rounded-full mr-2"></span>
+                        Pending Donor Responses ({pendingDonations.length})
+                      </h3>
+                      <p className="text-sm text-orange-700">
+                        These donors have expressed willingness to donate. Review and accept or decline each response.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {pendingDonations.map((donation) => (
+                        <div
+                          key={donation.id}
+                          className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-orange-500 hover:shadow-md transition"
+                        >
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="font-bold text-lg text-secondary">
+                                {donation.donor.first_name}{' '}
+                                {donation.donor.last_name}
+                              </h3>
+                              <p className="text-sm text-gray-500">
+                                {donation.donor.phone}
+                              </p>
+                            </div>
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800">
+                              ⧗ Pending
+                            </span>
+                          </div>
+
+                          <div className="space-y-2 mb-4 text-sm text-gray-600">
+                            <p>
+                              <strong>Blood Group:</strong>{' '}
+                              {donation.donor.blood_group}
+                            </p>
+                            <p>
+                              <strong>Registered:</strong>{' '}
+                              {new Date(donation.created_at).toLocaleDateString()}
+                            </p>
+                            {donation.donor.location && (
+                              <p>
+                                <strong>Location:</strong>{' '}
+                                {donation.donor.upazila_name}
+                              </p>
+                            )}
+                          </div>
+
+                          {donation.notes && (
+                            <p className="text-sm text-gray-600 mb-4">
+                              <strong>Notes:</strong> {donation.notes}
+                            </p>
+                          )}
+
+                          {isRequestor && donation.status === 'pending' && (
+                            <div className="flex gap-2 pt-4 border-t">
+                              <button
+                                onClick={() =>
+                                  handleApproveDonation(
+                                    donation.id
+                                  )
+                                }
+                                className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition font-semibold text-sm"
+                              >
+                                ✓ Accept
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleRejectDonation(
+                                    donation.id
+                                  )
+                                }
+                                className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition font-semibold text-sm"
+                              >
+                                ✕ Decline
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Rejected Donations */}
+                {rejectedDonations.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-red-700 mb-4 flex items-center">
+                      <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                      Declined ({rejectedDonations.length})
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {rejectedDonations.map((donation) => (
+                        <div
+                          key={donation.id}
+                          className="bg-red-50 rounded-lg shadow-sm p-6 border-l-4 border-red-500"
+                        >
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="font-bold text-lg text-secondary">
+                                {donation.donor.first_name}{' '}
+                                {donation.donor.last_name}
+                              </h3>
+                              <p className="text-sm text-gray-500">
+                                {donation.donor.phone}
+                              </p>
+                            </div>
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                              ✕ Declined
+                            </span>
+                          </div>
+
+                          <div className="space-y-2 text-sm text-gray-600">
+                            <p>
+                              <strong>Blood Group:</strong>{' '}
+                              {donation.donor.blood_group}
+                            </p>
+                            <p>
+                              <strong>Registered:</strong>{' '}
+                              {new Date(donation.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       )}
     </div>

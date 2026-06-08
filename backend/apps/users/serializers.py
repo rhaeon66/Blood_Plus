@@ -36,6 +36,20 @@ class UserSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj):
         return obj.get_full_name().strip()
 
+    def validate_phone_number(self, value):
+        """Allow phone number update if it's different from current value"""
+        user = self.instance
+        if user and User.objects.filter(phone_number=value).exclude(id=user.id).exists():
+            raise serializers.ValidationError("Phone number already exists.")
+        return value
+
+    def validate_nid(self, value):
+        """Allow NID update if it's different from current value"""
+        user = self.instance
+        if user and User.objects.filter(nid=value).exclude(id=user.id).exists():
+            raise serializers.ValidationError("NID already exists.")
+        return value
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(

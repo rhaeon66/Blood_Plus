@@ -94,7 +94,7 @@ export default function Navbar() {
                   : 'text-secondary-light hover:text-primary'
               }`}
             >
-              Find Blood
+              Blood Requests
             </Link>
             <Link
               href="/request-blood"
